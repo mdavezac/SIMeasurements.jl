@@ -9,6 +9,7 @@ all_integers(ε::AbstractFloat=1e-8) = y -> all_integers(y, ε)
 is_subtype(x::Type) = y -> (y <: x)
 
 include("units.jl")
+include("quantity.jl")
 
 exitstatus()
 end

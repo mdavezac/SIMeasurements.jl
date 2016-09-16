@@ -1,4 +1,5 @@
 using SIMeasurements: Meter, Kilogram, unit_symbol, dimensionality
+import SIMeasurements: conversion_factors
 facts("Basic SI Types") do
     @fact dimensionality(Meter) --> [1, 0, 0, 0, 0, 0, 0, 0, 0]
     @fact unit_symbol(Meter) --> "m"
@@ -21,4 +22,16 @@ facts("Operations over units") do
 
     @fact dimensionality(Meter^-1) --> [-1, 0, 0, 0, 0, 0, 0, 0, 0]
     @fact dimensionality(Meter^0) --> [0, 0, 0, 0, 0, 0, 0, 0, 0]
+end
+
+const Kloodge = Unit{:Beware, Dimensions(length=1)}()
+conversion_factors(::typeof(Kloodge), ::typeof(Meter)) = 3//10, 3//5
+const Blagger = Unit{:Beware, Dimensions(mass=2)}()
+conversion_factors(::Unit{:Beware, Dimensions(mass=1)}, ::typeof(Kilogram)) =
+    2//3, 0
+facts("Conversion factor") do
+   @fact conversion_factors(Kloodge, Meter) --> (3//10, 3//5)
+   @fact conversion_factors(Meter, Kloodge) --> (10//3, -2)
+   @fact conversion_factors(Meter^2, Kloodge^2) --> (100//9, 0)
+   @fact conversion_factors(Blagger, Kilogram^2) --> (4//9, 0)
 end

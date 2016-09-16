@@ -23,7 +23,7 @@ abstract AbstractUnit{SYSTEM, DIMENSIONS}
 immutable Unit{SYSTEM, DIMENSIONS} <: AbstractUnit{SYSTEM, DIMENSIONS}; end
 
 const si_names = [:Meter, :Kilogram, :Second, :Ampere, :Kelvin, :Mol,
-:Candela, :Radian, :Steradian]
+                  :Candela, :Radian, :Steradian]
 const si_symbols = [:m, :kg, :s, :A, :K, :mol, :Cd, :rad, :sr]
 for (name, dim, symb) in zip(si_names, fieldnames(Dimensions), si_symbols)
     const str = string(symb)
@@ -56,6 +56,8 @@ superscript(i) = map(repr(i)) do c
 end
 
 function unit_symbol(unit::AbstractUnit)
+    sum(dimensionality(unit)) == 1 &&
+        error("Missing unit symbol for instance of $(typeof(unit))")
     const system = unit_system(unit)
     const T = eltype(dimensionality(unit))
     const iters = 1:length(dimensionality(unit)), dimensionality(unit)
@@ -78,26 +80,61 @@ function prefer_system(a::AbstractUnit, b::AbstractUnit)
     end
 end
 
-function *(a::AbstractUnit, b::AbstractUnit)
+function *(a::Unit, b::Unit)
     const dims = dimensionality(a) + dimensionality(b)
     all(dims .== 0) && return T
     const system = prefer_system(a, b)
     Unit{system, Dimensions(dimensionality(a) + dimensionality(b))}()
 end
 
-function /(a::AbstractUnit, b::AbstractUnit)
+function /(a::Unit, b::Unit)
     const dims = dimensionality(a) - dimensionality(b)
     all(dims .== 0) && return 1
     const system = prefer_system(a, b)
     Unit{system, Dimensions(dimensionality(a) - dimensionality(b))}()
 end
-function ^(a::AbstractUnit, p::Integer)
+function ^(a::Unit, p::Integer)
     p == 0 && return 1
     Unit{unit_system(a), dimensionality(a) * p}()
 end
-function ^(a::AbstractUnit, p::Real)
+function ^(a::Unit, p::Real)
     abs(p) < 1e-12 && return 1
     Unit{unit_system(a), dimensionality(a) * p}()
+end
+
+typealias UseRational Union{Integer, Rational}
+invert_conversion(a::UseRational, b::UseRational) = 1//a, b == 0 ? 0: -b//a
+invert_conversion(a::UseRational, b::Real) = 1//a, -b/a
+invert_conversion(a::Real, b::Real) = 1/a, -b/a
+""" Conversion factors from a to b """
+function conversion_factors(a::Unit, b::Unit)
+    a ≡ b && return (1, 0)
+    dimensionality(a) == dimensionality(b) || error("Incompatible units")
+    if unit_system(b) == :SI
+        sum(dimensionality(a)) == 1 &&
+            error("Missing conversion factor for instance of $(typeof(a))")
+        mapreduce(*, enumerate(dimensionality(a))) do dims
+                dims[2] == 0 && return 1
+                args = zeros(Int64, 9)
+                args[dims[1]] = 1
+                const dimensions = Dimensions{Int64}(args...)
+                const Da = Unit{unit_system(a), dimensions}()
+                const Db = Unit{:SI, dimensions}()
+                conversion_factors(Da, Db)[1]^dims[2]
+        end, 0
+    elseif unit_system(a) == :SI
+        invert_conversion(conversion_factors(b, a)...)
+    elseif sum(dimensionality(a)) == 1
+        const a_slope, a_offset =
+            conversion_factors(a, Unit{:SI, dimensionality(a)}())
+        const b_slope, b_offset =
+            conversion_factors(Unit{:SI, dimensionality(a)}(), b)
+        a_slope * b_slope, a_offset * b_slope + b_offset
+    else
+        const a_slope = conversion_factors(a, Unit{:SI, dimensionality(a)}())[1]
+        const b_slope = conversion_factors(Unit{:SI, dimensionality(a)}(), b)[1]
+        a_slope * b_slope, 0
+    end
 end
 
 function Base.show(io::IO, unit::Unit)
