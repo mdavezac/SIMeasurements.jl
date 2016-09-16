@@ -59,7 +59,7 @@ end
 
 function unit_symbol(unit::AbstractUnit)
     sum(dimensionality(unit)) == 1 &&
-        error("Missing unit symbol for instance of $(typeof(unit))")
+        return "$(unit_system(unit)): $(dimensionality(unit))"
     const system = unit_system(unit)
     const T = eltype(dimensionality(unit))
     const iters = 1:length(dimensionality(unit)), dimensionality(unit)
