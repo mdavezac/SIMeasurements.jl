@@ -35,8 +35,10 @@ end
 
 """ System of which this is a unit """
 unit_system(unit::AbstractUnit) = typeof(unit).parameters[1]
+unit_system{S, D}(::Type{Unit{S, D}}) = S
 """ Dimensionality of the unit """
-dimensionality(unit::AbstractUnit) = typeof(unit).parameters[2]
+dimensionality{S, D}(::Type{Unit{S, D}}) = D
+dimensionality(unit::AbstractUnit) = dimensionality(typeof(unit))
 dimensionality(x::Real) = Dimensions()
 
 """ Prints superscript """
@@ -67,22 +69,19 @@ function unit_symbol(unit::AbstractUnit)
     const strings = map(nonzero) do dim
         const args = vcat(zeros(T, dim[1] - 1), T[1], zeros(T, 9 - dim[1]))
         const pure = Unit{system, Dimensions{T}(args...)}()
-        "$(unit_symbol(pure))$(superscript(dim[2]))"
+        "$(unit_symbol(pure))" * (dim[2] == 1 ? "": superscript(dim[2]))
     end
     join(strings, "⋅")
 end
 
 function prefer_system(a::AbstractUnit, b::AbstractUnit)
-    if unit_system(a) == :SI || unit_system(b) == :SI
-        :SI
-    else
-        unit_system(a)
-    end
+    (unit_system(a) == :SI || unit_system(b) == :SI) && return :SI
+    unit_system(a)
 end
 
 function *(a::Unit, b::Unit)
     const dims = dimensionality(a) + dimensionality(b)
-    all(dims .== 0) && return T
+    all(dims .== 0) && return 1
     const system = prefer_system(a, b)
     Unit{system, Dimensions(dimensionality(a) + dimensionality(b))}()
 end

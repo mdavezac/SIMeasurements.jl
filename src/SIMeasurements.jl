@@ -7,4 +7,5 @@ import Base: *, ^, /
 
 include("units.jl")
 include("quantity.jl")
+include("quantity_ops.jl")
 end # module
