@@ -21,14 +21,24 @@ facts("Simple conversion") do
 end
 
 facts("Operations") do
-    @fact unit_system((2 * Meter) * (3 * Kilogram)) --> :SI
-    @fact dimensionality((2 * Meter) * (3 * Kilogram)) -->
+    context("multiplication") do
+        @fact unit_system((2 * Meter) * (3 * Kilogram)) --> :SI
+        @fact dimensionality((2 * Meter) * (3 * Kilogram)) -->
         Dimensions(length=1, mass=1)
-    @fact eltype((2 * Meter) * (3 * Kilogram)) --> typeof(6)
-    @fact (2 * Meter) * (3 * Kilogram) -->
-        6 * Unit{:SI, Dimensions(length=1, mass=1)}()
+        @fact eltype((2 * Meter) * (3 * Kilogram)) --> typeof(6)
+        @fact (2 * Meter) * (3 * Kilogram) -->
+            6 * Unit{:SI, Dimensions(length=1, mass=1)}()
 
-    @fact eltype((2 * Meter) * (3.5 * Kilogram)) --> typeof(7.0)
-    @fact (2 * Meter) * (3.5 * Kilogram) -->
-        7.0 * Unit{:SI, Dimensions(length=1, mass=1)}()
+        @fact eltype((2 * Meter) * (3.5 * Kilogram)) --> typeof(7.0)
+        @fact (2 * Meter) * (3.5 * Kilogram) -->
+            7.0 * Unit{:SI, Dimensions(length=1, mass=1)}()
+    end
+    context("division") do
+        @fact (4 * Meter) / (2 * Kilogram) -->
+            2* Unit{:SI, Dimensions(length=1, mass=-1)}()
+        @fact (2 * Meter) / (3.0 * Kilogram) -->
+            (2 / 3.0) * Unit{:SI, Dimensions(length=1, mass=-1)}()
+        @fact (2 * Meter) // (3 * Kilogram) -->
+            (2 // 3) * Unit{:SI, Dimensions(length=1, mass=-1)}()
+    end
 end
