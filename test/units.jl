@@ -16,12 +16,18 @@ end
 
 facts("Operations over units") do
     @fact dimensionality(Meter * Meter) --> [2, 0, 0, 0, 0, 0, 0, 0, 0]
+    @fact typeof(dimensionality(Meter * Meter)) --> exactly(Dimensions)
     @fact dimensionality(Meter * Kilogram) --> [1, 1, 0, 0, 0, 0, 0, 0, 0]
+    @fact typeof(dimensionality(Meter * Kilogram)) --> exactly(Dimensions)
     @fact dimensionality(Meter / Kilogram) --> [1, -1, 0, 0, 0, 0, 0, 0, 0]
+    @fact typeof(dimensionality(Meter / Kilogram)) --> exactly(Dimensions)
     @fact dimensionality(Meter / Meter) --> [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    @fact typeof(dimensionality(Meter / Meter)) --> exactly(Dimensions)
 
     @fact dimensionality(Meter^-1) --> [-1, 0, 0, 0, 0, 0, 0, 0, 0]
+    @fact typeof(dimensionality(Meter^-1)) --> exactly(Dimensions)
     @fact dimensionality(Meter^0) --> [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    @fact typeof(dimensionality(Meter^0)) --> exactly(Dimensions)
 end
 
 const Kloodge = Unit{:Beware, Dimensions(length=1)}()
