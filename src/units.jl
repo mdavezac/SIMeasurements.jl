@@ -71,7 +71,7 @@ function unit_symbol(unit::AbstractUnit)
         const args = vcat(
             zeros(Int16, dim[1] - 1), Int16[1], zeros(Int16, 9 - dim[1]))
         const pure = Unit{system, Dimensions(args...)}()
-        if dim[2] == 0
+        if dim[2] == 1
             "$(unit_symbol(pure))"
         elseif dim[2].den == 1
             "$(unit_symbol(pure))" * superscript(dim[2].num)

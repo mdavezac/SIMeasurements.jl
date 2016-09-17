@@ -32,7 +32,13 @@ facts("Operations") do
         @fact eltype((2 * Meter) * (3.5 * Kilogram)) --> typeof(7.0)
         @fact (2 * Meter) * (3.5 * Kilogram) -->
             7.0 * Unit{:SI, Dimensions(length=1, mass=1)}()
+
+        @fact 2 * Meter * 3.5 * Kilogram * 4 -->
+            28 * Unit{:SI, Dimensions(length=1, mass=1)}()
+        @fact 2 * (1Meter) * 3.5 * (1Kilogram) * 4 -->
+            28 * Unit{:SI, Dimensions(length=1, mass=1)}()
     end
+
     context("division") do
         @fact (4 * Meter) / (2 * Kilogram) -->
             2* Unit{:SI, Dimensions(length=1, mass=-1)}()
@@ -40,5 +46,16 @@ facts("Operations") do
             (2 / 3.0) * Unit{:SI, Dimensions(length=1, mass=-1)}()
         @fact (2 * Meter) // (3 * Kilogram) -->
             (2 // 3) * Unit{:SI, Dimensions(length=1, mass=-1)}()
+        @fact 2  // (3 * Kilogram) -->
+            (2 // 3) * Unit{:SI, Dimensions(mass=-1)}()
+        @fact 2  / (3.0 * Kilogram) -->
+            (2 / 3.0) * Unit{:SI, Dimensions(mass=-1)}()
+    end
+
+    context("comparison") do
+        @fact 1Meter == (1//1) * Meter --> true
+        @fact 1Meter == (2//1) * Meter --> false
+        @fact 1Meter ≠ (2//1) * Meter --> true
+        @fact 1Meter ≠ (1//1) * Meter --> false
     end
 end

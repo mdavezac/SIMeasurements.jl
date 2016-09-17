@@ -1,45 +1,120 @@
 @generated function *(a::Quantity, b::Quantity)
     if unit_system(a) ≠ unit_system(b)
         const S = prefer_system(unit_system(a), unit_system(b))
-        return :(conversion(a, $S) * conversion(b, $S))
+        :(conversion(a, $S) * conversion(b, $S))
     end
-
+    dimensionality(a) == -dimensionality(b) && return :(a._ * b._)
     const T = promote_type(eltype(a), eltype(b))
-    const S = unit_system(a)
-    const D = dimensionality(a) + dimensionality(b)
-    all(D .== 0) && return :(a._ * b._)
-    const U = Unit{S, D}()
-    return :(Quantity{$T, $U}(a._ * b._))
+    const U = Unit{unit_system(a), dimensionality(a) + dimensionality(b)}
+    :(Quantity{$T, $U}(a._ * b._))
 end
 
 @generated function /(a::Quantity, b::Quantity)
     if unit_system(a) ≠ unit_system(b)
         const S = prefer_system(unit_system(a), unit_system(b))
-        const qa = conversion(unit(a), S)
-        const qb = conversion(unit(a), S)
-        return :(conversion(a, $S) / conversion(b, $S))
+        :(conversion(a, $S) / conversion(b, $S))
     end
-
+    dimensionality(a) == dimensionality(b) && return :(a._ / b._)
     const T = promote_type(eltype(a), eltype(b))
-    const S = unit_system(a)
-    const D = dimensionality(a) - dimensionality(b)
-    all(D .== 0) && return :(a._ / b._)
-    const U = Unit{S, D}()
-    return :(Quantity{$T, $U}(a._ / b._))
+    const U = Unit{unit_system(a), dimensionality(a) - dimensionality(b)}
+    :(Quantity{$T, $U}(a._ / b._))
 end
 
 @generated function //(a::Quantity, b::Quantity)
     if unit_system(a) ≠ unit_system(b)
         const S = prefer_system(unit_system(a), unit_system(b))
-        const qa = conversion(unit(a), S)
-        const qb = conversion(unit(a), S)
-        return :(conversion(a, $S) // conversion(b, $S))
+        :(conversion(a, $S) // conversion(b, $S))
     end
+    dimensionality(a) == dimensionality(b) && return :(a._ // b._)
+    const T = typeof(one(eltype(a)) // one(eltype(b)))
+    const U = Unit{unit_system(a), dimensionality(a) - dimensionality(b)}
+    :(Quantity{$T, $U}(a._ // b._))
+end
 
-    const T = Base.promote_op(//, eltype(a), eltype(b))
-    const S = unit_system(a)
-    const D = dimensionality(a) - dimensionality(b)
-    all(D .== 0) && return :(a._ // b._)
-    const U = Unit{S, D}()
-    return :(Quantity{Rational{$T}, $U}(a._ // b._))
+*(n::Bool, q::Quantity) = n ? (1 * q): (0 * q)
+@generated function *(n::Number, q::Quantity)
+    :(Quantity{$(promote_type(n, eltype(q))), $(typeof(unit(q)))}(q._ * n))
+end
+*(q::Quantity, n::Number) = n * q
+@generated function /(n::Number, q::Quantity)
+    const U = Unit{unit_system(q), -dimensionality(q)}
+    :(Quantity{$(promote_type(n, eltype(q))), $U}(n / q._))
+end
+@generated function /(q::Quantity, n::Number)
+    :(Quantity{$(promote_type(n, eltype(q))), $(typeof(unit(q)))}(q._ / n))
+end
+@generated function //(n::Number, q::Quantity)
+    const U = Unit{unit_system(q), -dimensionality(q)}
+    const T = typeof(one(n) // one(eltype(q)))
+    :(Quantity{$T, $U}(n // q._))
+end
+@generated function //(q::Quantity, n::Complex)
+    const T = typeof(one(eltype(q)) // one(n))
+    :(Quantity{$T, $(typeof(unit(q)))}(q._ // n))
+end
+@generated function //(q::Quantity, n::Number)
+    const T = typeof(one(eltype(q)) // one(n))
+    :(Quantity{$T, $(typeof(unit(q)))}(q._ // n))
+end
+
+@generated function *(n::Unit, q::Quantity)
+    if unit_system(n) ≠ unit_system(q)
+        const S = prefer_system(unit_system(n), unit_system(q))
+        :(conversion(1n, $S) * conversion(q, $S))
+    end
+    dimensionality(n) == -dimensionality(q) && return q._
+    const U = Unit{unit_system(n), dimensionality(n) + dimensionality(q)}
+    :(Quantity{$(eltype(q)), $U}(q._))
+end
+*(q::Quantity, n::Unit) = n * q
+@generated function /(n::Unit, q::Quantity)
+    if unit_system(n) ≠ unit_system(q)
+        const S = prefer_system(unit_system(n), unit_system(q))
+        :(conversion(1n, $S) / conversion(q, $S))
+    end
+    dimensionality(n) == dimensionality(q) && return 1/q._
+    const U = Unit{unit_system(n), dimensionality(n) - dimensionality(q)}
+    :(Quantity{$(eltype(q)), $U}(1/q._))
+end
+@generated function /(q::Quantity, n::Unit)
+    if unit_system(n) ≠ unit_system(q)
+        const S = prefer_system(unit_system(n), unit_system(q))
+        :(conversion(q, $S) / conversion(1n, $S))
+    end
+    dimensionality(n) == dimensionality(q) && return q._
+    const U = Unit{unit_system(n), dimensionality(q) - dimensionality(n)}
+    :(Quantity{$(eltype(q)), $U}(q._))
+end
+@generated function //(n::Unit, q::Quantity)
+    if unit_system(n) ≠ unit_system(q)
+        const S = prefer_system(unit_system(n), unit_system(q))
+        :(conversion(1n, $S) // conversion(q, $S))
+    end
+    dimensionality(n) == dimensionality(q) && return 1//q._
+    const U = Unit{unit_system(n), dimensionality(n) - dimensionality(q)}
+    :(Quantity{$(eltype(q)), $U}(1//q._))
+end
+//(q::Quantity, n::Unit) = n / q
+
+@generated function Base.promote_rule{Ta <: Number, Tb <: Number, Sa, Sb, D}(
+           ::Type{Quantity{Ta, Unit{Sa, D}}}, ::Type{Quantity{Tb, Unit{Sb, D}}})
+    const S = prefer_system(Unit{Sa, D}(), Unit{Sb, D}())
+    :(Quantity{$(promote_type(Ta, Tb)), $(Unit{S, D})})
+end
+
+# Conversion to itself
+Base.convert{T <: Number, U <: Unit}(
+                                  ::Type{Quantity{T, U}}, q::Quantity{T, U}) = q
+# Conversion from same system
+Base.convert{Ta <: Number, Tb <: Number, U <: Unit}(
+                                  ::Type{Quantity{Ta, U}}, q::Quantity{Tb, U}) =
+    Quantity{promote_type(Ta, Tb), U}(convert(promote_type(Ta, Tb), q._))
+
+# Conversion from different systems
+function Base.convert{Ta <: Number, Tb <: Number, Sa, Sb, D}(
+                ::Type{Quantity{Ta, Unit{Sa, D}}}, q::Quantity{Tb, Unit{Sb, D}})
+    const T = promote_type(Ta, Tb)
+    const value = convert(T, q._)
+    result = conversion(Quantity{T, Unit{Sb, D}}(value), Sa)
+    Quantity{Ta, Unit{Sa, D}}(convert(Ta, result._))
 end
