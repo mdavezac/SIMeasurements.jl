@@ -1,6 +1,6 @@
 @generated function *(a::Quantity, b::Quantity)
     if unit_system(a) ≠ unit_system(b)
-        const S = prefer_system(unit_system(a), unit_system(b))
+        const S = prefer_system(unit(a), unit(b))
         :(conversion(a, $S) * conversion(b, $S))
     end
     dimensionality(a) == -dimensionality(b) && return :(a._ * b._)
@@ -11,7 +11,7 @@ end
 
 @generated function /(a::Quantity, b::Quantity)
     if unit_system(a) ≠ unit_system(b)
-        const S = prefer_system(unit_system(a), unit_system(b))
+        const S = prefer_system(unit(a), unit(b))
         :(conversion(a, $S) / conversion(b, $S))
     end
     dimensionality(a) == dimensionality(b) && return :(a._ / b._)
@@ -22,7 +22,7 @@ end
 
 @generated function //(a::Quantity, b::Quantity)
     if unit_system(a) ≠ unit_system(b)
-        const S = prefer_system(unit_system(a), unit_system(b))
+        const S = prefer_system(unit(a), unit(b))
         :(conversion(a, $S) // conversion(b, $S))
     end
     dimensionality(a) == dimensionality(b) && return :(a._ // b._)
@@ -59,7 +59,7 @@ end
 
 @generated function *(n::Unit, q::Quantity)
     if unit_system(n) ≠ unit_system(q)
-        const S = prefer_system(unit_system(n), unit_system(q))
+        const S = prefer_system(n, unit(q))
         :(conversion(1n, $S) * conversion(q, $S))
     end
     dimensionality(n) == -dimensionality(q) && return q._
@@ -69,7 +69,7 @@ end
 *(q::Quantity, n::Unit) = n * q
 @generated function /(n::Unit, q::Quantity)
     if unit_system(n) ≠ unit_system(q)
-        const S = prefer_system(unit_system(n), unit_system(q))
+        const S = prefer_system(n, unit(q))
         :(conversion(1n, $S) / conversion(q, $S))
     end
     dimensionality(n) == dimensionality(q) && return 1/q._
@@ -78,7 +78,7 @@ end
 end
 @generated function /(q::Quantity, n::Unit)
     if unit_system(n) ≠ unit_system(q)
-        const S = prefer_system(unit_system(n), unit_system(q))
+        const S = prefer_system(n, unit(q))
         :(conversion(q, $S) / conversion(1n, $S))
     end
     dimensionality(n) == dimensionality(q) && return q._
@@ -87,7 +87,7 @@ end
 end
 @generated function //(n::Unit, q::Quantity)
     if unit_system(n) ≠ unit_system(q)
-        const S = prefer_system(unit_system(n), unit_system(q))
+        const S = prefer_system(n, unit(q))
         :(conversion(1n, $S) // conversion(q, $S))
     end
     dimensionality(n) == dimensionality(q) && return 1//q._
