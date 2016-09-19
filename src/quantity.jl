@@ -1,7 +1,7 @@
 immutable Quantity{T <: Number, UNIT <: Unit} <: Number
     _::T
 end
-
+Quantity(n::Number, unit::AbstractUnit) = Quantity{typeof(n), typeof(unit)}(n)
 
 """ Physical unit of the input quantity """
 unit(q::Quantity) = unit(typeof(q))
@@ -15,7 +15,8 @@ Base.eltype(q::Quantity) = eltype(typeof(q))
 *(x::Number, unit::AbstractUnit) = Quantity{typeof(x), typeof(unit)}(x)
 *(unit::AbstractUnit, x::Number) = Quantity{typeof(x), typeof(unit)}(x)
 /(x::Number, unit::AbstractUnit) = Quantity{typeof(x), typeof(unit^-1)}(x)
-/(unit::AbstractUnit, x::Number) = Quantity{typeof(x), typeof(unit)}(1/x)
+/(unit::AbstractUnit, x::Number) =
+    Quantity{typeof(one(x)/x), typeof(unit)}(one(x)/x)
 
 dimensionality(q::Quantity) = dimensionality(unit(q))
 dimensionality{T <: Number, U <: Unit}(::Type{Quantity{T, U}}) =

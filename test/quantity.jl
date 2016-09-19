@@ -40,6 +40,9 @@ facts("Operations") do
             28 * Unit{:SI, Dimensions(length=1, mass=1)}()
 
         @fact (1klurdge) * 2 --> 2 * klurdge
+
+        @fact klurdge/2 --> 0.5klurdge
+
         const actual = (1klurdge) * (3//2 * Kilogram)
         @fact unit_system(actual) --> :SI
         @fact actual --> 3//8 * Meter^2 * Kilogram
@@ -56,6 +59,18 @@ facts("Operations") do
             (2 // 3) * Unit{:SI, Dimensions(mass=-1)}()
         @fact 2  / (3.0 * Kilogram) -->
             (2 / 3.0) * Unit{:SI, Dimensions(mass=-1)}()
+
+        @fact (1klurdge) / 2 --> 0.5 * klurdge
+        @fact (1klurdge) // 2 --> 1//2 * klurdge
+        const actual = (1klurdge) // (3//2 * Kilogram)
+        @fact unit_system(actual) --> :SI
+        @fact actual --> 1//4 * 2//3 * (Meter^2 / Kilogram)
+        @fact actual --> (1//4 * 2//3 * Meter^2) / Kilogram
+    end
+
+    context("power") do
+        @fact (1.5Meter)^-1 --> (1/1.5 * Meter^-1)
+        @fact (2Meter)^(-1//2) --> (1/√2 * Meter^(-1//2))
     end
 
     context("comparison") do
@@ -69,4 +84,13 @@ facts("Operations") do
         @fact 1Meter < (1//1) * Meter --> false
         @fact 1Meter < (2//1) * Meter --> true
     end
+end
+
+facts("Arrays") do
+    context("Create and multiply") do
+        @fact typeof([1, 1]klurdge) -->
+            exactly(Vector{Quantity{Int64, typeof(klurdge)}})
+        @fact [2, 1]klurdge --> Quantity{Int64, typeof(klurdge)}[2, 1]
+    end
+
 end

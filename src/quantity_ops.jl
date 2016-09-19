@@ -15,7 +15,7 @@ end
         return :(conversion(a, Symbol($S)) / conversion(b, Symbol($S)))
     end
     dimensionality(a) == dimensionality(b) && return :(a._ / b._)
-    const T = promote_type(eltype(a), eltype(b))
+    const T = typeof(one(eltype(a)) /  one(eltype(b)))
     const U = Unit{unit_system(a), dimensionality(a) - dimensionality(b)}
     :(Quantity{$T, $U}(a._ / b._))
 end
@@ -41,7 +41,7 @@ end
     :(Quantity{$(promote_type(n, eltype(q))), $U}(n / q._))
 end
 @generated function /(q::Quantity, n::Number)
-    :(Quantity{$(promote_type(n, eltype(q))), $(typeof(unit(q)))}(q._ / n))
+    :(Quantity{$(typeof(one(n) / one(eltype(q)))), $(typeof(unit(q)))}(q._ / n))
 end
 @generated function //(n::Number, q::Quantity)
     const U = Unit{unit_system(q), -dimensionality(q)}
@@ -55,6 +55,14 @@ end
 @generated function //(q::Quantity, n::Number)
     const T = typeof(one(eltype(q)) // one(n))
     :(Quantity{$T, $(typeof(unit(q)))}(q._ // n))
+end
+function ^(q::Quantity, n::Rational)
+    const value = q._^n
+    Quantity{typeof(value), typeof(unit(q)^n)}(value)
+end
+function ^(q::Quantity, n::Integer)
+    const value = q._^n
+    Quantity{typeof(value), typeof(unit(q)^n)}(value)
 end
 
 @generated function *(n::Unit, q::Quantity)
@@ -102,13 +110,13 @@ end
     :(Quantity{$(promote_type(Ta, Tb)), $(Unit{S, D})})
 end
 
-# Conversion to itself
-Base.convert{T <: Number, U <: Unit}(
-                                  ::Type{Quantity{T, U}}, q::Quantity{T, U}) = q
 # Conversion from same system
-Base.convert{Ta <: Number, Tb <: Number, U <: Unit}(
+Base.convert{Ta <: Number, Tb <: Number, U <: AbstractUnit}(
                                   ::Type{Quantity{Ta, U}}, q::Quantity{Tb, U}) =
     Quantity{promote_type(Ta, Tb), U}(convert(promote_type(Ta, Tb), q._))
+# Promote number to fullly specified quantity
+Base.convert{T <: Number, U <: AbstractUnit}(
+    ::Type{Quantity{T, U}}, n::Number) = Quantity{T, U}(convert(T, n))
 
 # Conversion from different systems
 function Base.convert{Ta <: Number, Tb <: Number, Sa, Sb, D}(
@@ -125,3 +133,22 @@ end
         :(isless(a, conversion(b, unit_system(a))))
     :(isless(a._, b._))
 end
+
+function Base.promote_array_type{N <: Number, Q <: Quantity}(
+        ::Base.DotMulFun, ::Type{Q}, ::Type{N})
+    Quantity{promote_type(N, eltype(Q)), typeof(unit(Q))}
+end
+function Base.promote_array_type{Qa <: Quantity, Qb <: Quantity}(
+    ::Base.DotMulFun, ::Type{Qa}, ::Type{Qb})
+    if dimensionality(Qa) == -dimensionality(Qb)
+        return promote_type(eltype(Qa), eltype(Qb))
+    end
+    Quantity{promote_type(eltype(Qa), eltype(Qb)), typeof(unit(Qa) * unit(Qb))}
+end
+
+function *(array::AbstractArray, unit::AbstractUnit)
+    const Q = Quantity{eltype(array), typeof(unit)}
+    reshape(Q[u for u in array], size(array))
+end
+*(unit::AbstractUnit, array::AbstractArray) = array * unit
+/(array::AbstractArray, unit::AbstractUnit) = array * unit^-1
