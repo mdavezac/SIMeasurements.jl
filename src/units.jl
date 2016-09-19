@@ -60,8 +60,7 @@ superscript(i) = map(repr(i)) do c
 end
 
 function unit_symbol(unit::AbstractUnit)
-    sum(dimensionality(unit)) == 1 &&
-        return "$(unit_system(unit)): $(dimensionality(unit))"
+    sum(dimensionality(unit)) == 1 && return "$(dimensionality(unit))"
     const system = unit_system(unit)
     const iters = 1:length(dimensionality(unit)), dimensionality(unit)
     const nonzero = filter(zip(iters...)) do dim
@@ -88,13 +87,14 @@ function prefer_system(a::AbstractUnit, b::AbstractUnit)
 end
 
 function *(a::Unit, b::Unit)
+    unit_system(a) == unit_system(b) || error("Incompatible unit systems")
     const dims = dimensionality(a) + dimensionality(b)
     all(dims .== 0) && return 1
-    const system = prefer_system(a, b)
-    Unit{system, dimensionality(a) + dimensionality(b)}()
+    Unit{unit_system(a), dimensionality(a) + dimensionality(b)}()
 end
 
 function /(a::Unit, b::Unit)
+    unit_system(a) == unit_system(b) || error("Incompatible unit systems")
     const dims = dimensionality(a) - dimensionality(b)
     all(dims .== 0) && return 1
     const system = prefer_system(a, b)
@@ -122,7 +122,7 @@ function conversion_factors(a::Unit, b::Unit)
             error("Missing conversion factor for instance of $(typeof(a))")
         mapreduce(*, enumerate(dimensionality(a))) do dims
                 dims[2] == 0 && return 1
-                args = zeros(Int64, 9)
+                args = zeros(Int64, length(dimensionality(a)))
                 args[dims[1]] = 1
                 const dimensions = Dimensions(args...)
                 const Da = Unit{unit_system(a), dimensions}()

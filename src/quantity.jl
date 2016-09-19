@@ -36,7 +36,8 @@ function conversion(a::Quantity, system::Symbol)
     unit_system(a) == system && return a
     const U = Unit{system, dimensionality(a)}()
     const slope, offset = conversion_factors(unit(a), U)
-    Quantity{eltype(a), typeof(U)}(a._ * slope + offset)
+    const value = a._ * slope + offset
+    Quantity{typeof(value), typeof(U)}(value)
 end
 """ converts quantity to another system """
 function conversion(u::Unit, system::Symbol)

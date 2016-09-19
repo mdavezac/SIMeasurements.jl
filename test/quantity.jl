@@ -1,4 +1,5 @@
 using SIMeasurements: Quantity, Dimensions, unit_system
+import SIMeasurements: conversion_factors
 
 facts("Creating a quantity") do
     @fact unit(2Meter) --> exactly(Meter)
@@ -37,6 +38,11 @@ facts("Operations") do
             28 * Unit{:SI, Dimensions(length=1, mass=1)}()
         @fact 2 * (1Meter) * 3.5 * (1Kilogram) * 4 -->
             28 * Unit{:SI, Dimensions(length=1, mass=1)}()
+
+        @fact (1klurdge) * 2 --> 2 * klurdge
+        const actual = (1klurdge) * (3//2 * Kilogram)
+        @fact unit_system(actual) --> :SI
+        @fact actual --> 3//8 * Meter^2 * Kilogram
     end
 
     context("division") do
@@ -57,5 +63,10 @@ facts("Operations") do
         @fact 1Meter == (2//1) * Meter --> false
         @fact 1Meter ≠ (2//1) * Meter --> true
         @fact 1Meter ≠ (1//1) * Meter --> false
+        @fact 1Meter ≥ (1//1) * Meter --> true
+        @fact 1Meter > (1//1) * Meter --> false
+        @fact 1Meter ≤ (1//1) * Meter --> true
+        @fact 1Meter < (1//1) * Meter --> false
+        @fact 1Meter < (2//1) * Meter --> true
     end
 end
