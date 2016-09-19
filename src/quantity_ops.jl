@@ -97,24 +97,31 @@ end
 //(q::Quantity, n::Unit) = n / q
 
 @generated function Base.promote_rule{Ta <: Number, Tb <: Number, Sa, Sb, D}(
-           ::Type{Quantity{Ta, Unit{Sa, D}}}, ::Type{Quantity{Tb, Unit{Sb, D}}})
+    ::Type{Quantity{Ta, Unit{Sa, D}}}, ::Type{Quantity{Tb, Unit{Sb, D}}})
     const S = prefer_system(Unit{Sa, D}(), Unit{Sb, D}())
     :(Quantity{$(promote_type(Ta, Tb)), $(Unit{S, D})})
 end
 
 # Conversion to itself
 Base.convert{T <: Number, U <: Unit}(
-                                  ::Type{Quantity{T, U}}, q::Quantity{T, U}) = q
+::Type{Quantity{T, U}}, q::Quantity{T, U}) = q
 # Conversion from same system
 Base.convert{Ta <: Number, Tb <: Number, U <: Unit}(
-                                  ::Type{Quantity{Ta, U}}, q::Quantity{Tb, U}) =
-    Quantity{promote_type(Ta, Tb), U}(convert(promote_type(Ta, Tb), q._))
+::Type{Quantity{Ta, U}}, q::Quantity{Tb, U}) =
+Quantity{promote_type(Ta, Tb), U}(convert(promote_type(Ta, Tb), q._))
 
 # Conversion from different systems
 function Base.convert{Ta <: Number, Tb <: Number, Sa, Sb, D}(
-                ::Type{Quantity{Ta, Unit{Sa, D}}}, q::Quantity{Tb, Unit{Sb, D}})
+    ::Type{Quantity{Ta, Unit{Sa, D}}}, q::Quantity{Tb, Unit{Sb, D}})
     const T = promote_type(Ta, Tb)
     const value = convert(T, q._)
     result = conversion(Quantity{T, Unit{Sb, D}}(value), Sa)
     Quantity{Ta, Unit{Sa, D}}(convert(Ta, result._))
+end
+
+@generated function Base.isless(a::Quantity, b::Quantity)
+    dimensionality(a) ≠ dimensionality(b) && error("Incompatible units")
+    unit_system(a) ≠ unit_system(b) &&
+    :(isless(a, conversion(b, unit_system(a))))
+    :(isless(a._, b._))
 end
