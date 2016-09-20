@@ -103,4 +103,16 @@ facts("Arrays") do
             Quantity{Rational{Int64}, typeof(Meter^-1)}[3, 3//2]
     end
 
+    context("Create and divide") do
+        @fact typeof([1, 1]/klurdge) -->
+            exactly(Vector{Quantity{Int64, typeof(klurdge^-1)}})
+        @fact [2, 1] / klurdge --> Quantity{Int64, typeof(klurdge^-1)}[2, 1]
+
+        @fact [2, 1] / (1klurdge) --> Quantity{Int64, typeof(klurdge^-1)}[2, 1]
+        @fact [2, 1] / (1.0klurdge) --> Quantity{Float64, typeof(klurdge^-1)}[2, 1]
+
+        @fact (1klurdge) ./ [2, 1] --> Quantity{Float64, typeof(klurdge)}[0.5, 1.0]
+        @fact (1klurdge) .// [2, 1] -->
+            Quantity{Rational{Int64}, typeof(klurdge)}[1//2, 1]
+    end
 end
