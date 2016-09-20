@@ -99,6 +99,8 @@ facts("Arrays") do
             Quantity{Int64, typeof(klurdge^2)}[6, 3]
         @fact ([2, 1] * (3klurdge)) * Meter^-2 --> [3//2, 3//4] 
         @fact ([2, 1] * (3klurdge)) * (4Meter^-2) --> [6, 3] 
+        @fact ([2, 1] * (3klurdge)) * (2Meter^-3) -->
+            Quantity{Rational{Int64}, typeof(Meter^-1)}[3, 3//2]
     end
 
 end

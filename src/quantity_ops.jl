@@ -134,17 +134,8 @@ end
     :(isless(a._, b._))
 end
 
-function Base.promote_array_type{N <: Number, Q <: Quantity}(
-        ::Base.DotMulFun, ::Type{Q}, ::Type{N})
-    Quantity{promote_type(N, eltype(Q)), typeof(unit(Q))}
-end
-function Base.promote_array_type{Qa <: Quantity, Qb <: Quantity}(
-    ::Base.DotMulFun, ::Type{Qa}, ::Type{Qb})
-    if dimensionality(Qa) == -dimensionality(Qb)
-        return promote_type(eltype(Qa), eltype(Qb))
-    end
-    Quantity{promote_type(eltype(Qa), eltype(Qb)), typeof(unit(Qa) * unit(Qb))}
-end
+Base.promote_array_type{N <: Number, Q <: Quantity}(
+    f::Base.DotMulFun, ::Type{Q}, ::Type{N}) = typeof(f(one(Q), one(N)))
 
 function *{T <: Quantity}(array::AbstractArray{T}, unit::AbstractUnit)
     const Q = typeof(one(T) * unit)
