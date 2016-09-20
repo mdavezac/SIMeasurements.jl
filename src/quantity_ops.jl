@@ -67,38 +67,38 @@ end
 
 @generated function *(n::Unit, q::Quantity)
     if unit_system(n) ≠ unit_system(q)
-        const S = prefer_system(n, unit(q))
-        :(conversion(1n, $S) * conversion(q, $S))
+        const S = string(prefer_system(n(), unit(q)))
+        return :(conversion(q, Symbol($S)) * conversion(1n, Symbol($S)))
     end
-    dimensionality(n) == -dimensionality(q) && return q._
+    dimensionality(n) == -dimensionality(q) && return :(q._)
     const U = Unit{unit_system(n), dimensionality(n) + dimensionality(q)}
     :(Quantity{$(eltype(q)), $U}(q._))
 end
 *(q::Quantity, n::Unit) = n * q
 @generated function /(n::Unit, q::Quantity)
     if unit_system(n) ≠ unit_system(q)
-        const S = prefer_system(n, unit(q))
-        :(conversion(1n, $S) / conversion(q, $S))
+        const S = string(prefer_system(n(), unit(q)))
+        return :(conversion(1n, Symbol($S)) / conversion(q, Symbol($S)))
     end
-    dimensionality(n) == dimensionality(q) && return 1/q._
+    dimensionality(n) == dimensionality(q) && return :(1/q._)
     const U = Unit{unit_system(n), dimensionality(n) - dimensionality(q)}
     :(Quantity{$(eltype(q)), $U}(1/q._))
 end
 @generated function /(q::Quantity, n::Unit)
     if unit_system(n) ≠ unit_system(q)
-        const S = prefer_system(n, unit(q))
-        :(conversion(q, $S) / conversion(1n, $S))
+        const S = string(prefer_system(n(), unit(q)))
+        return :(conversion(q, Symbol($S)) / conversion(1n, Symbol($S)))
     end
-    dimensionality(n) == dimensionality(q) && return q._
+    dimensionality(n) == dimensionality(q) && return :(q._)
     const U = Unit{unit_system(n), dimensionality(q) - dimensionality(n)}
     :(Quantity{$(eltype(q)), $U}(q._))
 end
 @generated function //(n::Unit, q::Quantity)
     if unit_system(n) ≠ unit_system(q)
-        const S = prefer_system(n, unit(q))
-        :(conversion(1n, $S) // conversion(q, $S))
+        const S = string(prefer_system(n(), unit(q)))
+        return :(conversion(1n, Symbol($S)) / conversion(q, Symbol($S)))
     end
-    dimensionality(n) == dimensionality(q) && return 1//q._
+    dimensionality(n) == dimensionality(q) && return :(1//q._)
     const U = Unit{unit_system(n), dimensionality(n) - dimensionality(q)}
     :(Quantity{$(eltype(q)), $U}(1//q._))
 end

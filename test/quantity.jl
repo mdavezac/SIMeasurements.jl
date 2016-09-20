@@ -97,6 +97,8 @@ facts("Arrays") do
             Quantity{Int64, typeof(klurdge^2)}[6, 3]
         @fact ([2, 1] * (3klurdge)) * (1klurdge) -->
             Quantity{Int64, typeof(klurdge^2)}[6, 3]
+        @fact ([2, 1] * (3klurdge)) * Meter^-2 --> [3//2, 3//4] 
+        @fact ([2, 1] * (3klurdge)) * (4Meter^-2) --> [6, 3] 
     end
 
 end
