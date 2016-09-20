@@ -146,8 +146,12 @@ function Base.promote_array_type{Qa <: Quantity, Qb <: Quantity}(
     Quantity{promote_type(eltype(Qa), eltype(Qb)), typeof(unit(Qa) * unit(Qb))}
 end
 
-function *(array::AbstractArray, unit::AbstractUnit)
-    const Q = Quantity{eltype(array), typeof(unit)}
+function *{T <: Quantity}(array::AbstractArray{T}, unit::AbstractUnit)
+    const Q = typeof(one(T) * unit)
+    reshape(Q[u * unit for u in array], size(array))
+    end
+function *{T <: Number}(array::AbstractArray{T}, unit::AbstractUnit)
+    const Q = Quantity{T, typeof(unit)}
     reshape(Q[u for u in array], size(array))
 end
 *(unit::AbstractUnit, array::AbstractArray) = array * unit

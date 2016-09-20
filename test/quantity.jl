@@ -91,6 +91,12 @@ facts("Arrays") do
         @fact typeof([1, 1]klurdge) -->
             exactly(Vector{Quantity{Int64, typeof(klurdge)}})
         @fact [2, 1]klurdge --> Quantity{Int64, typeof(klurdge)}[2, 1]
+        @fact [2, 1] * (1klurdge) --> Quantity{Int64, typeof(klurdge)}[2, 1]
+        @fact [2, 1] * (3klurdge) --> Quantity{Int64, typeof(klurdge)}[6, 3]
+        @fact ([2, 1] * (3klurdge)) * klurdge -->
+            Quantity{Int64, typeof(klurdge^2)}[6, 3]
+        @fact ([2, 1] * (3klurdge)) * (1klurdge) -->
+            Quantity{Int64, typeof(klurdge^2)}[6, 3]
     end
 
 end
