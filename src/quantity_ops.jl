@@ -135,7 +135,7 @@ end
 end
 
 Base.promote_array_type{N <: Number, Q <: Quantity}(
-    f::Base.DotMulFun, ::Type{Q}, ::Type{N}) = typeof(f(one(Q), one(N)))
+    f::typeof(.*), ::Type{Q}, ::Type{N}) = typeof(f(one(Q), one(N)))
 
 function *{T <: Quantity}(array::AbstractArray{T}, unit::AbstractUnit)
     const Q = typeof(one(T) * unit)
