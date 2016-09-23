@@ -3,7 +3,7 @@ module SIMeasurements
 export Dimensions, Unit, Quantity, unit, conversion
 
 using FixedSizeArrays: FixedVectorNoTuple
-import Base: *, ^, /, //
+import Base: *, ^, /, //, +, -
 
 include("units.jl")
 include("quantity.jl")

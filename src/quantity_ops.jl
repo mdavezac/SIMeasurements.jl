@@ -31,6 +31,34 @@ end
     :(Quantity{$T, $U}(a._ // b._))
 end
 
+@generated function +(a::Quantity, b::Quantity)
+    if dimensionality(a) != dimensionality(b)
+        return :(error("Incompatible unit systems"))
+    end
+    if unit_system(a) ≠ unit_system(b)
+        const S = string(prefer_system(unit(a), unit(b)))
+        return :(conversion(a, Symbol($S)) + conversion(b, Symbol($S)))
+    end
+    const T = typeof(one(eltype(a)) + one(eltype(b)))
+    const U = Unit{unit_system(a), dimensionality(a)}
+    :(Quantity{$T, $U}(a._ + b._))
+end
+
+@generated function -(a::Quantity, b::Quantity)
+    if dimensionality(a) != dimensionality(b)
+        return :(error("Incompatible unit systems"))
+    end
+    if unit_system(a) ≠ unit_system(b)
+        const S = string(prefer_system(unit(a), unit(b)))
+        return :(conversion(a, Symbol($S)) - conversion(b, Symbol($S)))
+    end
+    const T = typeof(one(eltype(a)) - one(eltype(b)))
+    const U = Unit{unit_system(a), dimensionality(a)}
+    :(Quantity{$T, $U}(a._ - b._))
+end
+
+-(a::Quantity) = typeof(a)(-a._)
+
 *(n::Bool, q::Quantity) = n ? (1 * q): (0 * q)
 @generated function *(n::Number, q::Quantity)
     :(Quantity{$(promote_type(n, eltype(q))), $(typeof(unit(q)))}(q._ * n))

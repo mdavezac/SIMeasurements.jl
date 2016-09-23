@@ -84,6 +84,19 @@ facts("Operations") do
         @fact 1Meter < (1//1) * Meter --> false
         @fact 1Meter < (2//1) * Meter --> true
     end
+
+    context("sum") do
+        @fact 1Meter + 1Meter --> 2Meter
+        @fact 1.5Meter + 1Meter --> 2.5Meter
+        @fact 1 * Meter + 1//2 * Meter --> 3//2 * Meter
+        @fact 1klurdge + 2//3 * Meter^2 --> 11//12 * Meter^2
+        @fact_throws 1klurdge + 1Meter, ErrorException
+
+        @fact -(1Meter) --> (-1)Meter
+        @fact 1Meter - 1Meter --> 0Meter
+        @fact 1klurdge - 2//3 * Meter^2 --> -5//12 * Meter^2
+        @fact_throws 1klurdge - 1Meter, ErrorException
+    end
 end
 
 facts("Arrays") do
@@ -114,5 +127,18 @@ facts("Arrays") do
         @fact (1klurdge) ./ [2, 1] --> Quantity{Float64, typeof(klurdge)}[0.5, 1.0]
         @fact (1klurdge) .// [2, 1] -->
             Quantity{Rational{Int64}, typeof(klurdge)}[1//2, 1]
+    end
+
+    context("Operations") do
+        @fact_throws [1, 2]Meter + [1, 3]klurdge, ExceptionError
+        @fact [1, 2]Meter^2 + [1, 3]klurdge --> [5//4, 11//4]Meter^2
+        @fact [1, 2]Meter^2 - [1, 3]klurdge --> [3//4, 5//4]Meter^2
+        @fact ([1 2; 3 4]Kilogram) * ([1, 3]klurdge) -->
+            ([1 2; 3 4] * [1//4, 3//4]) * (Kilogram * Meter^2)
+        @fact ([1 2; 3 4]Kilogram) .* ([1, 3]klurdge) -->
+            ([1 2; 3 4] .* [1//4, 3//4]) * (Kilogram * Meter^2)
+        @fact [1 2; 3 4] * [1, 3]klurdge --> ([1 2; 3 4] * [1, 3]) * klurdge
+        @fact unit_system([1 2; 3 4] * [1, 3]klurdge) --> :Koala
+        @fact unit([1 2; 3 4] * [1, 3]klurdge) --> exactly(klurdge)
     end
 end

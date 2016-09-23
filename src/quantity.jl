@@ -6,6 +6,8 @@ Quantity(n::Number, unit::AbstractUnit) = Quantity{typeof(n), typeof(unit)}(n)
 """ Physical unit of the input quantity """
 unit(q::Quantity) = unit(typeof(q))
 unit{T <: Number, U <: Unit}(q::Type{Quantity{T, U}}) = U()
+unit{A <: AbstractArray}(q::Type{A}) = unit(eltype(A))
+unit(q::AbstractArray) = unit(eltype(q))
 
 Base.convert(::Type{Number}, q::Quantity) = q._
 Base.show(io::IO, q::Quantity) = print(io, q._, "⋅", unit(q))
@@ -19,10 +21,13 @@ Base.eltype(q::Quantity) = eltype(typeof(q))
     Quantity{typeof(one(x)/x), typeof(unit)}(one(x)/x)
 
 dimensionality(q::Quantity) = dimensionality(unit(q))
+dimensionality(q::AbstractArray) = dimensionality(unit(q))
 dimensionality{T <: Number, U <: Unit}(::Type{Quantity{T, U}}) =
     dimensionality(U)
 unit_system(q::Quantity) = unit_system(unit(q))
 unit_system{T <: Number, U <: Unit}(::Type{Quantity{T, U}}) = unit_system(U)
+unit_system{A <: AbstractArray}(::Type{A}) = unit_system(eltype(A))
+unit_system(q::AbstractArray) = unit_system(eltype(q))
 
 """ converts quantity to given unit """
 function conversion(a::Quantity, b::AbstractUnit)
